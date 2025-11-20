@@ -6,7 +6,7 @@ import os
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'pixel-haven-secret-key-2024'
+app.config['SECRET_KEY'] = 'pixel-haven-secret-key-2025'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pixel_haven.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
