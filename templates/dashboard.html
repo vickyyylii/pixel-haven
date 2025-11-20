@@ -1,43 +1,96 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Pixel Haven</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">🎮 Pixel Haven</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/products">Products</a>
+                <a class="nav-link" href="/customers">Customers</a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
 
-{% block content %}
-<h2>Inventory Dashboard</h2>
-<div class="row mt-4">
-    <div class="col-md-3 mb-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">Products</h5>
-                <p class="card-text">Manage game inventory</p>
-                <a href="{{ url_for('products') }}" class="btn btn-light">Manage Products</a>
+    <div class="container mt-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Inventory Dashboard</h2>
+            <span class="text-muted">Welcome!</span>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ stats.total_products }}</h5>
+                        <p class="card-text">Total Products</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ stats.total_customers }}</h5>
+                        <p class="card-text">Total Customers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ stats.total_orders }}</h5>
+                        <p class="card-text">Total Orders</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ stats.low_stock_products }}</h5>
+                        <p class="card-text">Low Stock Items</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Products</h5>
+                        <p class="card-text">Manage inventory</p>
+                        <a href="/products" class="btn btn-primary">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Customers</h5>
+                        <p class="card-text">Customer management</p>
+                        <a href="/customers" class="btn btn-success">Manage</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title">Customers</h5>
-                <p class="card-text">Customer management</p>
-                <a href="{{ url_for('customers') }}" class="btn btn-light">Manage Customers</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title">Orders</h5>
-                <p class="card-text">Order processing</p>
-                <a href="#" class="btn btn-light">Coming Soon</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <h5 class="card-title">Suppliers</h5>
-                <p class="card-text">Supplier management</p>
-                <a href="#" class="btn btn-light">Coming Soon</a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

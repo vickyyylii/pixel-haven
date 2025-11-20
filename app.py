@@ -73,6 +73,41 @@ class OrderItem(db.Model):
 def load_user(user_id):
     return Employee.query.get(int(user_id))
 
+# Analytics Functions
+
+def get_dashboard_stats():
+    """Get statistics for dashboard"""
+    total_products = Product.query.count()
+    total_customers = Customer.query.count()
+    total_orders = Order.query.count()
+    low_stock_products = Product.query.filter(Product.stock_quantity < 10).count()
+    
+    return {
+        'total_products': total_products,
+        'total_customers': total_customers,
+        'total_orders': total_orders,
+        'low_stock_products': low_stock_products
+    }
+
+def get_category_stats():
+    """Get product counts by category"""
+    categories = db.session.query(
+        Product.category, 
+        db.func.count(Product.id).label('count')
+    ).group_by(Product.category).all()
+    
+    return {category: count for category, count in categories if category}
+
+def get_price_range_stats():
+    """Get product counts by price range"""
+    ranges = [
+        ('Under $50', Product.query.filter(Product.price < 50).count()),
+        ('$50-$100', Product.query.filter(Product.price.between(50, 100)).count()),
+        ('$100-$200', Product.query.filter(Product.price.between(100, 200)).count()),
+        ('Over $200', Product.query.filter(Product.price > 200).count())
+    ]
+    return ranges
+
 # Helper functions
 def create_admin_user():
     print("🔧 Checking for admin user...")
@@ -111,7 +146,14 @@ def index():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    stats = get_dashboard_stats()
+    category_stats = get_category_stats()
+    price_stats = get_price_range_stats()
+    
+    return render_template('dashboard.html', 
+                         stats=stats, 
+                         category_stats=category_stats,
+                         price_stats=price_stats)
 
 @app.route('/test')
 def test():
@@ -285,9 +327,45 @@ def debug_routes():
         })
     return {'routes': sorted(routes, key=lambda x: x['endpoint'])}
 
+def add_sample_data():
+    """Add sample products and customers for testing"""
+    # Check if we already have products
+    if Product.query.count() == 0:
+        print("📊 Adding sample data...")
+        
+        # Get the default supplier
+        supplier = Supplier.query.first()
+        
+        # Add sample products
+        sample_products = [
+            Product(name="Gaming Mouse", description="High DPI gaming mouse", price=49.99, stock_quantity=25, category="Peripherals", supplier_id=supplier.id),
+            Product(name="Mechanical Keyboard", description="RGB mechanical keyboard", price=89.99, stock_quantity=15, category="Peripherals", supplier_id=supplier.id),
+            Product(name="Gaming Monitor", description="27-inch 144Hz monitor", price=299.99, stock_quantity=8, category="Monitors", supplier_id=supplier.id),
+            Product(name="Wireless Headset", description="7.1 surround sound headset", price=79.99, stock_quantity=30, category="Audio", supplier_id=supplier.id),
+            Product(name="Gaming Chair", description="Ergonomic gaming chair", price=199.99, stock_quantity=5, category="Furniture", supplier_id=supplier.id)
+        ]
+        
+        for product in sample_products:
+            db.session.add(product)
+        
+        # Add sample customers
+        sample_customers = [
+            Customer(name="John Doe", email="john@example.com", phone="555-0101", address="123 Main St"),
+            Customer(name="Jane Smith", email="jane@example.com", phone="555-0102", address="456 Oak Ave")
+        ]
+        
+        for customer in sample_customers:
+            db.session.add(customer)
+        
+        db.session.commit()
+        print("✅ Sample data added successfully!")
+    else:
+        print("✅ Sample data already exists")
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         create_admin_user()
         create_default_supplier()
+        add_sample_data()
     app.run(debug=True)
