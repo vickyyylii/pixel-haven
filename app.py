@@ -146,7 +146,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
-# Product Management Routes (ONLY ONE SET - REMOVED DUPLICATES)
+# Product Management Routes 
 @app.route('/products')
 @login_required
 def products():
@@ -209,6 +209,81 @@ def delete_product(id):
     db.session.commit()
     flash('Product deleted successfully!', 'success')
     return redirect(url_for('products'))
+
+# Customer Management Routes
+@app.route('/customers')
+@login_required
+def customers():
+    all_customers = Customer.query.all()
+    return render_template('customers/list.html', customers=all_customers)
+
+@app.route('/customers/add', methods=['GET', 'POST'])
+@login_required
+def add_customer():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form['phone']
+        address = request.form['address']
+        
+        new_customer = Customer(
+            name=name,
+            email=email,
+            phone=phone,
+            address=address
+        )
+        
+        try:
+            db.session.add(new_customer)
+            db.session.commit()
+            flash('Customer added successfully!', 'success')
+            return redirect(url_for('customers'))
+        except:
+            db.session.rollback()
+            flash('Error: Email already exists!', 'error')
+    
+    return render_template('customers/add.html')
+
+@app.route('/customers/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_customer(id):
+    customer = Customer.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        customer.name = request.form['name']
+        customer.email = request.form['email']
+        customer.phone = request.form['phone']
+        customer.address = request.form['address']
+        
+        try:
+            db.session.commit()
+            flash('Customer updated successfully!', 'success')
+            return redirect(url_for('customers'))
+        except:
+            db.session.rollback()
+            flash('Error: Email already exists!', 'error')
+    
+    return render_template('customers/edit.html', customer=customer)
+
+@app.route('/customers/delete/<int:id>')
+@login_required
+def delete_customer(id):
+    customer = Customer.query.get_or_404(id)
+    db.session.delete(customer)
+    db.session.commit()
+    flash('Customer deleted successfully!', 'success')
+    return redirect(url_for('customers'))
+
+@app.route('/debug')
+def debug_routes():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'path': rule.rule,
+            'methods': list(rule.methods)
+        })
+    return {'routes': sorted(routes, key=lambda x: x['endpoint'])}
 
 if __name__ == '__main__':
     with app.app_context():
