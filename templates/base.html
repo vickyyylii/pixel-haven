@@ -5,33 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pixel Haven{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .bg-lavender {
+            background-color: #967bb6 !important;
+        }
+        .btn-lavender {
+            background-color: #967bb6;
+            border-color: #967bb6;
+            color: white;
+        }
+        .btn-lavender:hover {
+            background-color: #8567a7;
+            border-color: #8567a7;
+            color: white;
+        }
+        .btn-outline-lavender {
+            color: #967bb6;
+            border-color: #967bb6;
+        }
+        .btn-outline-lavender:hover {
+            background-color: #967bb6;
+            color: white;
+        }
+        .text-lavender {
+            color: #967bb6 !important;
+        }
+        .stat-card {
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .action-card {
+            transition: all 0.3s ease;
+            border: 1px solid #dee2e6;
+        }
+        .action-card:hover {
+            box-shadow: 0 8px 15px rgba(150, 123, 182, 0.2);
+            border-color: #967bb6;
+        }
+        .nav-link:hover {
+            color: #e6e6fa !important;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-lavender">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">🎮 Pixel Haven</a>
-            <div class="navbar-nav">
+            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">🕹️ Pixel Haven</a>
+            <div class="navbar-nav ms-auto">
                 {% if current_user.is_authenticated %}
-                    <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
-                    <a class="nav-link" href="#">Logout</a>
+                    <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+                    <a class="nav-link" href="#"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
                 {% else %}
-                    <a class="nav-link" href="#">Login</a>
+                    <a class="nav-link" href="#"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a>
                 {% endif %}
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-info">{{ message }}</div>
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2024 Pixel Haven. All rights reserved.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

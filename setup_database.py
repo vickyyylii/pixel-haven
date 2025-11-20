@@ -19,7 +19,7 @@ cur = conn.cursor()
 
 print("Creating tables...")
 
-# Create tables
+# Create tables 
 cur.execute("""
 CREATE TABLE employee (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,11 +84,11 @@ CREATE TABLE order_items (
 
 print("📊 Inserting sample data...")
 
-# ----- Employees (2 rows) -----
+# ----- Employees -----
 cur.execute("INSERT INTO employee (username, password_hash, role) VALUES ('admin', 'admin123', 'admin')")
 cur.execute("INSERT INTO employee (username, password_hash, role) VALUES ('staff1', 'staff123', 'staff')")
 
-# ----- Suppliers (10+ rows) -----
+# ----- Suppliers CORRECT -----
 suppliers = [
     ('NVIDIA Corp', 'sales@nvidia.com', '1-800-NVIDIA', '2788 San Tomas Expressway, Santa Clara, CA'),
     ('Intel Corporation', 'orders@intel.com', '1-800-538-3373', '2200 Mission College Blvd, Santa Clara, CA'),
@@ -105,7 +105,7 @@ suppliers = [
 ]
 cur.executemany("INSERT INTO supplier (name, contact_email, phone, address) VALUES (?, ?, ?, ?)", suppliers)
 
-# ----- Products (12+ rows) -----
+# ----- Products -----
 products = [
     ('NVIDIA RTX 4090', 'Flagship gaming GPU with 24GB GDDR6X', 1599.99, 15, 'GPU', 1),
     ('NVIDIA RTX 4080', 'High-end gaming GPU with 16GB GDDR6X', 1199.99, 25, 'GPU', 1),
@@ -124,7 +124,7 @@ products = [
 ]
 cur.executemany("INSERT INTO product (name, description, price, stock_quantity, category, supplier_id) VALUES (?, ?, ?, ?, ?, ?)", products)
 
-# ----- Customers (12+ rows) -----
+# ----- Customers -----
 customers = [
     ('Kevin Nguyen', 'kevin.nguyen@email.com', '555-0101', '123 Main St, New York, NY'),
     ('Sarah Holmes', 'sarah.holmes@email.com', '555-0102', '456 Oak Ave, Los Angeles, CA'),
@@ -142,7 +142,7 @@ customers = [
 ]
 cur.executemany("INSERT INTO customer (name, email, phone, address) VALUES (?, ?, ?, ?)", customers)
 
-# ----- Orders (10+ rows) -----
+# ----- Orders (12 rows) -----
 orders = [
     (2999.97, 'completed', 1, 1),
     (799.99, 'completed', 2, 1),
@@ -159,21 +159,21 @@ orders = [
 ]
 cur.executemany("INSERT INTO orders (total_amount, status, customer_id, employee_id) VALUES (?, ?, ?, ?)", orders)
 
-# ----- Order Items (12+ rows) -----
+# ----- Order Items -----
 order_items = [
-    (1, 1599.99, 1, 1),
-    (1, 1399.98, 1, 2),
-    (2, 799.99, 2, 4),
-    (1, 169.99, 3, 6),
-    (2, 649.99, 4, 10),
-    (1, 199.99, 5, 11),
-    (1, 699.99, 6, 10),
-    (1, 589.99, 7, 4),
-    (1, 219.99, 8, 11),
-    (1, 149.99, 9, 13),
-    (1, 599.99, 10, 14),
-    (1, 129.99, 11, 6),
-    (1, 179.99, 12, 7)
+    (1, 1599.99, 1, 1),    # Order 1: NVIDIA RTX 4090
+    (1, 1399.98, 1, 2),    # Order 1: NVIDIA RTX 4080 
+    (1, 799.99, 2, 4),     # Order 2: Intel Core i9-14900K
+    (1, 169.99, 3, 8),     # Order 3: WD Black SN850X 2TB
+    (2, 649.99, 4, 10),    # Order 4: 2x ASUS ROG Swift Monitor 
+    (1, 199.99, 5, 11),    # Order 5: MSI MAG B650 Tomahawk
+    (1, 699.99, 6, 10),    # Order 6: ASUS ROG Swift Monitor
+    (1, 589.99, 7, 4),     # Order 7: Intel Core i9-14900K
+    (1, 219.99, 8, 11),    # Order 8: MSI MAG B650 Tomahawk
+    (1, 149.99, 9, 13),    # Order 9: Gigabyte AORUS PSU 850W
+    (1, 599.99, 10, 14),   # Order 10: EVGA RTX 4070 Super
+    (1, 129.99, 11, 6),    # Order 11: Corsair Vengeance 32GB DDR5
+    (1, 179.99, 12, 7)     # Order 12: Samsung 980 Pro 2TB
 ]
 cur.executemany("INSERT INTO order_items (quantity, unit_price, order_id, product_id) VALUES (?, ?, ?, ?)", order_items)
 
