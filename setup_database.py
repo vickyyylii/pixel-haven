@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-print("🚀 Creating Pixel Haven database...")
+print("Creating Pixel Haven database...")
 
 # Database path
 db_path = 'instance/pixel_haven.db'
@@ -17,7 +17,7 @@ if not os.path.exists('instance'):
 conn = sqlite3.connect(db_path)
 cur = conn.cursor()
 
-print("🗂️ Creating tables...")
+print("Creating tables...")
 
 # Create tables
 cur.execute("""
@@ -180,8 +180,8 @@ cur.executemany("INSERT INTO order_items (quantity, unit_price, order_id, produc
 conn.commit()
 conn.close()
 
-print("✅ Database created successfully!")
-print("📊 Table Summary:")
+print("Database created successfully!")
+print("Table Summary:")
 print("   - 2 employees")
 print("   - 12 suppliers")
 print("   - 14 products")
