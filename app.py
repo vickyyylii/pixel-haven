@@ -591,6 +591,87 @@ def supplier_details(id):
     supplier = Supplier.query.get_or_404(id)
     return render_template('suppliers/details.html', supplier=supplier)
 
+# Search & Filter Routes - COMMIT 9
+@app.route('/search/products')
+@login_required
+def search_products():
+    query = request.args.get('q', '')
+    category = request.args.get('category', '')
+    min_price = request.args.get('min_price', '')
+    max_price = request.args.get('max_price', '')
+    
+    # Start with base query
+    products_query = Product.query
+    
+    # Apply search filters
+    if query:
+        products_query = products_query.filter(Product.name.ilike(f'%{query}%'))
+    
+    if category:
+        products_query = products_query.filter(Product.category == category)
+    
+    if min_price:
+        products_query = products_query.filter(Product.price >= float(min_price))
+    
+    if max_price:
+        products_query = products_query.filter(Product.price <= float(max_price))
+    
+    products = products_query.all()
+    categories = db.session.query(Product.category).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
+    
+    return render_template('search/products.html', 
+                         products=products, 
+                         categories=categories,
+                         search_query=query,
+                         selected_category=category,
+                         min_price=min_price,
+                         max_price=max_price)
+
+@app.route('/search/customers')
+@login_required
+def search_customers():
+    query = request.args.get('q', '')
+    
+    customers_query = Customer.query
+    
+    if query:
+        customers_query = customers_query.filter(
+            Customer.name.ilike(f'%{query}%') | 
+            Customer.email.ilike(f'%{query}%')
+        )
+    
+    customers = customers_query.all()
+    
+    return render_template('search/customers.html', 
+                         customers=customers, 
+                         search_query=query)
+
+@app.route('/search/orders')
+@login_required
+def search_orders():
+    status = request.args.get('status', '')
+    customer_id = request.args.get('customer_id', '')
+    
+    orders_query = Order.query
+    
+    if status:
+        orders_query = orders_query.filter(Order.status == status)
+    
+    if customer_id:
+        orders_query = orders_query.filter(Order.customer_id == int(customer_id))
+    
+    orders = orders_query.all()
+    customers = Customer.query.all()
+    statuses = ['pending', 'processing', 'shipped', 'completed']
+    
+    return render_template('search/orders.html', 
+                         orders=orders, 
+                         customers=customers,
+                         statuses=statuses,
+                         selected_status=status,
+                         selected_customer_id=customer_id)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

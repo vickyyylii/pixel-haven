@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Customer Search</h4>
+            </div>
+            <div class="card-body">
+                <!-- Search Form -->
+                <form method="GET" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-10">
+                            <label for="q" class="form-label">Search by Name or Email</label>
+                            <input type="text" class="form-control" id="q" name="q" value="{{ search_query }}" placeholder="Enter customer name or email...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">Search</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Results -->
+                <div class="mt-4">
+                    <h5 class="mb-3">
+                        Search Results 
+                        <span class="badge bg-primary">{{ customers|length }} customers found</span>
+                    </h5>
+                    
+                    {% if customers %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Orders</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in customers %}
+                                <tr>
+                                    <td>{{ customer.name }}</td>
+                                    <td>{{ customer.email }}</td>
+                                    <td>{{ customer.phone }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ customer.orders|length }} orders</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('edit_customer', id=customer.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No customers found matching your search criteria.</p>
+                    {% endif %}
+                </div>
+
+                <div class="mt-3">
+                    <a href="{{ url_for('customers') }}" class="btn btn-secondary">Back to All Customers</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
