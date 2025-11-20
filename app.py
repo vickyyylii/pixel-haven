@@ -16,7 +16,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Models (your existing models remain the same)
+# Models
 class Employee(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -73,6 +73,36 @@ class OrderItem(db.Model):
 def load_user(user_id):
     return Employee.query.get(int(user_id))
 
+# Helper functions
+def create_admin_user():
+    print("🔧 Checking for admin user...")
+    if not Employee.query.filter_by(username='admin').first():
+        admin = Employee(
+            username='admin',
+            password_hash=generate_password_hash('admin123'),
+            role='admin'
+        )
+        db.session.add(admin)
+        db.session.commit()
+        print("✅ Admin user created: admin / admin123")
+    else:
+        print("✅ Admin user already exists")
+
+def create_default_supplier():
+    print("🔧 Checking for default supplier...")
+    if not Supplier.query.first():
+        supplier = Supplier(
+            name="Default Supplier",
+            contact_email="supplier@example.com",
+            phone="123-456-7890",
+            address="123 Main Street, City, State"
+        )
+        db.session.add(supplier)
+        db.session.commit()
+        print("✅ Default supplier created.")
+    else:
+        print("✅ Default supplier already exists")
+
 # Routes
 @app.route('/')
 def index():
@@ -87,13 +117,13 @@ def dashboard():
 def test():
     return "<h1>Simple Test</h1><p>If you see this, basic routing works!</p>"
 
-# authentication routes
+# Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    print("LOGIN ROUTE ACCESSED")
+    print("🔐 LOGIN ROUTE ACCESSED")
     
     if request.method == 'POST':
-        print("POST request received")
+        print("📝 POST request received")
         username = request.form['username']
         password = request.form['password']
         
@@ -106,7 +136,7 @@ def login():
         else:
             flash('Invalid username or password', 'error')
     
-    print("Rendering login template...")
+    print("🎨 Rendering login template...")
     return render_template('auth/login.html')
 
 @app.route('/logout')
@@ -116,24 +146,73 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
-def create_admin_user():
-    print("Checking if admin user exists...")
-    if not Employee.query.filter_by(username='admin').first():
-        admin = Employee(
-            username='admin',
-            password_hash=generate_password_hash('admin123'),
-            role='admin'
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print("Admin user created: admin / admin123")
-    else:
-        print("Admin user already exists")
+# Product Management Routes (ONLY ONE SET - REMOVED DUPLICATES)
+@app.route('/products')
+@login_required
+def products():
+    all_products = Product.query.all()
+    return render_template('products/list.html', products=all_products)
 
-# Initialize the database and create admin user
-with app.app_context():
-    db.create_all()
-    create_admin_user()
+@app.route('/products/add', methods=['GET', 'POST'])
+@login_required
+def add_product():
+    suppliers = Supplier.query.all()
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        price = float(request.form['price'])
+        stock_quantity = int(request.form['stock_quantity'])
+        category = request.form['category']
+        supplier_id = int(request.form['supplier_id'])
+        
+        new_product = Product(
+            name=name,
+            description=description,
+            price=price,
+            stock_quantity=stock_quantity,
+            category=category,
+            supplier_id=supplier_id
+        )
+        
+        db.session.add(new_product)
+        db.session.commit()
+        flash('Product added successfully!', 'success')
+        return redirect(url_for('products'))
+    
+    return render_template('products/add.html', suppliers=suppliers)
+
+@app.route('/products/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_product(id):
+    product = Product.query.get_or_404(id)
+    suppliers = Supplier.query.all()
+    
+    if request.method == 'POST':
+        product.name = request.form['name']
+        product.description = request.form['description']
+        product.price = float(request.form['price'])
+        product.stock_quantity = int(request.form['stock_quantity'])
+        product.category = request.form['category']
+        product.supplier_id = int(request.form['supplier_id'])
+        
+        db.session.commit()
+        flash('Product updated successfully!', 'success')
+        return redirect(url_for('products'))
+    
+    return render_template('products/edit.html', product=product, suppliers=suppliers)
+
+@app.route('/products/delete/<int:id>')
+@login_required
+def delete_product(id):
+    product = Product.query.get_or_404(id)
+    db.session.delete(product)
+    db.session.commit()
+    flash('Product deleted successfully!', 'success')
+    return redirect(url_for('products'))
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        create_admin_user()
+        create_default_supplier()
     app.run(debug=True)
