@@ -464,6 +464,74 @@ def delete_order(id):
     flash('Order deleted successfully!', 'success')
     return redirect(url_for('orders'))
 
+# Supplier Management Routes
+@app.route('/suppliers')
+@login_required
+def suppliers():
+    all_suppliers = Supplier.query.all()
+    return render_template('suppliers/list.html', suppliers=all_suppliers)
+
+@app.route('/suppliers/add', methods=['GET', 'POST'])
+@login_required
+def add_supplier():
+    if request.method == 'POST':
+        name = request.form['name']
+        contact_email = request.form['contact_email']
+        phone = request.form['phone']
+        address = request.form['address']
+        
+        new_supplier = Supplier(
+            name=name,
+            contact_email=contact_email,
+            phone=phone,
+            address=address
+        )
+        
+        db.session.add(new_supplier)
+        db.session.commit()
+        flash('Supplier added successfully!', 'success')
+        return redirect(url_for('suppliers'))
+    
+    return render_template('suppliers/add.html')
+
+@app.route('/suppliers/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_supplier(id):
+    supplier = Supplier.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        supplier.name = request.form['name']
+        supplier.contact_email = request.form['contact_email']
+        supplier.phone = request.form['phone']
+        supplier.address = request.form['address']
+        
+        db.session.commit()
+        flash('Supplier updated successfully!', 'success')
+        return redirect(url_for('suppliers'))
+    
+    return render_template('suppliers/edit.html', supplier=supplier)
+
+@app.route('/suppliers/delete/<int:id>')
+@login_required
+def delete_supplier(id):
+    supplier = Supplier.query.get_or_404(id)
+    
+    # Check if supplier has products
+    if supplier.products:
+        flash('Cannot delete supplier with associated products. Please reassign products first.', 'error')
+        return redirect(url_for('suppliers'))
+    
+    db.session.delete(supplier)
+    db.session.commit()
+    flash('Supplier deleted successfully!', 'success')
+    return redirect(url_for('suppliers'))
+
+@app.route('/suppliers/<int:id>')
+@login_required
+def supplier_details(id):
+    supplier = Supplier.query.get_or_404(id)
+    return render_template('suppliers/details.html', supplier=supplier)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
