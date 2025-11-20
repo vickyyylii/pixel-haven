@@ -327,40 +327,99 @@ def debug_routes():
         })
     return {'routes': sorted(routes, key=lambda x: x['endpoint'])}
 
-def add_sample_data():
-    """Add sample products and customers for testing"""
-    # Check if we already have products
-    if Product.query.count() == 0:
-        print("📊 Adding sample data...")
-        
-        # Get the default supplier
-        supplier = Supplier.query.first()
-        
-        # Add sample products
-        sample_products = [
-            Product(name="Gaming Mouse", description="High DPI gaming mouse", price=49.99, stock_quantity=25, category="Peripherals", supplier_id=supplier.id),
-            Product(name="Mechanical Keyboard", description="RGB mechanical keyboard", price=89.99, stock_quantity=15, category="Peripherals", supplier_id=supplier.id),
-            Product(name="Gaming Monitor", description="27-inch 144Hz monitor", price=299.99, stock_quantity=8, category="Monitors", supplier_id=supplier.id),
-            Product(name="Wireless Headset", description="7.1 surround sound headset", price=79.99, stock_quantity=30, category="Audio", supplier_id=supplier.id),
-            Product(name="Gaming Chair", description="Ergonomic gaming chair", price=199.99, stock_quantity=5, category="Furniture", supplier_id=supplier.id)
-        ]
-        
-        for product in sample_products:
-            db.session.add(product)
-        
-        # Add sample customers
-        sample_customers = [
-            Customer(name="John Doe", email="john@example.com", phone="555-0101", address="123 Main St"),
-            Customer(name="Jane Smith", email="jane@example.com", phone="555-0102", address="456 Oak Ave")
-        ]
-        
-        for customer in sample_customers:
-            db.session.add(customer)
-        
-        db.session.commit()
-        print("✅ Sample data added successfully!")
-    else:
-        print("✅ Sample data already exists")
+def import_original_data():
+    """Import data from your original setup_database.py - COMMIT 8"""
+    print("🔄 Importing original Pixel Haven dataset...")
+    
+    suppliers_data = [
+        ('NVIDIA Corp', 'sales@nvidia.com', '1-800-NVIDIA', '2788 San Tomas Expressway, Santa Clara, CA'),
+        ('Intel Corporation', 'orders@intel.com', '1-800-538-3373', '2200 Mission College Blvd, Santa Clara, CA'),
+        ('AMD Inc', 'support@amd.com', '1-800-538-8450', '2485 Augustine Drive, Santa Clara, CA'),
+        ('Corsair Memory', 'sales@corsair.com', '1-888-222-4346', '47100 Bayside Parkway, Fremont, CA'),
+        ('Samsung Electronics', 'orders@samsung.com', '1-800-726-7864', '3655 N First St, San Jose, CA'),
+        ('Western Digital', 'support@wdc.com', '1-800-275-4932', '5601 Great Oaks Parkway, San Jose, CA'),
+        ('Logitech', 'sales@logitech.com', '1-646-454-3200', '7700 Gateway Blvd, Newark, CA'),
+        ('ASUS', 'orders@asus.com', '1-812-282-2787', '800 Corporate Way, Fremont, CA'),
+        ('MSI', 'support@msi.com', '1-626-271-1004', '901 Canada Court, City of Industry, CA'),
+        ('Cooler Master', 'sales@coolermaster.com', '1-909-595-7676', '17170 Rowland St, City of Industry, CA'),
+        ('Gigabyte', 'sales@gigabyte.com', '1-626-854-9338', 'City of Industry, CA'),
+        ('EVGA', 'support@evga.com', '1-888-881-3842', 'Brea, CA')
+    ]
+    
+    # Clear existing data and add real suppliers
+    Supplier.query.delete()
+    suppliers = []
+    for name, email, phone, address in suppliers_data:
+        supplier = Supplier(name=name, contact_email=email, phone=phone, address=address)
+        db.session.add(supplier)
+        suppliers.append(supplier)
+    
+    db.session.flush()  # Get supplier IDs
+    
+    # Your actual products
+    products_data = [
+        ('NVIDIA RTX 4090', 'Flagship gaming GPU with 24GB GDDR6X', 1599.99, 15, 'GPU', 1),
+        ('NVIDIA RTX 4080', 'High-end gaming GPU with 16GB GDDR6X', 1199.99, 25, 'GPU', 1),
+        ('AMD RX 7900 XTX', 'High-end AMD GPU with 24GB GDDR6', 999.99, 20, 'GPU', 3),
+        ('Intel Core i9-14900K', '24-core desktop processor', 589.99, 40, 'CPU', 2),
+        ('AMD Ryzen 9 7950X', '16-core desktop processor', 699.99, 35, 'CPU', 3),
+        ('Corsair Vengeance 32GB DDR5', '32GB DDR5 5600MHz memory kit', 129.99, 100, 'Memory', 4),
+        ('Samsung 980 Pro 2TB', '2TB NVMe PCIe 4.0 SSD', 179.99, 60, 'Storage', 5),
+        ('WD Black SN850X 2TB', '2TB NVMe PCIe 4.0 SSD', 169.99, 55, 'Storage', 6),
+        ('Logitech MX Master 3S', 'Wireless performance mouse', 99.99, 75, 'Peripherals', 7),
+        ('ASUS ROG Swift Monitor', '27-inch 1440p gaming monitor', 699.99, 25, 'Monitors', 8),
+        ('MSI MAG B650 Tomahawk', 'AMD AM5 motherboard', 219.99, 30, 'Motherboard', 9),
+        ('Cooler Master Hyper 212', 'CPU air cooler', 44.99, 80, 'Cooling', 10),
+        ('Gigabyte AORUS PSU 850W', '80+ Gold power supply', 149.99, 40, 'PSU', 11),
+        ('EVGA RTX 4070 Super', 'Mid-range gaming GPU', 599.99, 35, 'GPU', 12)
+    ]
+    
+    # Clear and add real products
+    Product.query.delete()
+    for name, description, price, stock, category, supplier_id in products_data:
+        product = Product(
+            name=name, description=description, price=price,
+            stock_quantity=stock, category=category, supplier_id=supplier_id
+        )
+        db.session.add(product)
+    
+    customers_data = [
+        ('Kevin Nguyen', 'kevin.nguyen@email.com', '555-0101', '123 Main St, New York, NY'),
+        ('Sarah Holmes', 'sarah.holmes@email.com', '555-0102', '456 Oak Ave, Los Angeles, CA'),
+        ('Mikey Chen', 'mikey.chen@email.com', '555-0103', '789 Pine Rd, Chicago, IL'),
+        ('Emily Vu', 'emily.vu@email.com', '555-0104', '321 Elm St, Houston, TX'),
+        ('Shawn Wilson', 'shawn.wilson@email.com', '555-0105', '654 Maple Dr, Phoenix, AZ'),
+        ('Lisa Pink', 'lisa.pink@email.com', '555-0106', '987 Cedar Ln, Philadelphia, PA'),
+        ('Robert Taylor', 'robert.taylor@email.com', '555-0107', '147 Birch Way, San Antonio, TX'),
+        ('Jennifer Lee', 'jennifer.lee@email.com', '555-0108', '258 Walnut St, San Diego, CA'),
+        ('Thomas Miller', 'thomas.miller@email.com', '555-0109', '369 Spruce Ave, Dallas, TX'),
+        ('Naomi Garcia', 'naomi.garcia@email.com', '555-0110', '741 Aspen Blvd, San Jose, CA'),
+        ('Alex Johnson', 'alex.johnson@email.com', '555-0111', '852 Palm St, Seattle, WA'),
+        ('Maria Rodriguez', 'maria.rodriguez@email.com', '555-0112', '963 Redwood Dr, Denver, CO'),
+        ('David Kim', 'david.kim@email.com', '555-0113', '159 Willow Ln, Boston, MA')
+    ]
+    
+    Customer.query.delete()
+    for name, email, phone, address in customers_data:
+        customer = Customer(name=name, email=email, phone=phone, address=address)
+        db.session.add(customer)
+    
+    # Add some sample orders
+    orders_data = [
+        (2999.97, 'completed', 1, 1),
+        (799.99, 'completed', 2, 1),
+        (169.99, 'pending', 3, 1),
+        (1299.98, 'shipped', 4, 1),
+        (199.99, 'completed', 5, 1)
+    ]
+    
+    Order.query.delete()
+    for total_amount, status, customer_id, employee_id in orders_data:
+        order = Order(total_amount=total_amount, status=status, customer_id=customer_id, employee_id=employee_id)
+        db.session.add(order)
+    
+    db.session.commit()
+    print("Pixel Haven dataset imported successfully!")
 
 # Order Management Routes
 @app.route('/orders')
@@ -537,5 +596,5 @@ if __name__ == '__main__':
         db.create_all()
         create_admin_user()
         create_default_supplier()
-        add_sample_data()
+        import_original_data() 
     app.run(debug=True)
