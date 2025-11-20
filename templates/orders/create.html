@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Create New Order</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="orderForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="customer_id" class="form-label">Customer</label>
+                                <select class="form-control" id="customer_id" name="customer_id" required>
+                                    <option value="">Select Customer</option>
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.id }}">{{ customer.name }} ({{ customer.email }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4">Products</h5>
+                    <div id="products-container">
+                        <div class="row product-row mb-3">
+                            <div class="col-md-6">
+                                <select class="form-control" name="product_ids" required>
+                                    <option value="">Select Product</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}" data-price="{{ product.price }}">
+                                        {{ product.name }} - ${{ "%.2f"|format(product.price) }} (Stock: {{ product.stock_quantity }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" class="form-control" name="quantities" placeholder="Quantity" min="1" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-danger remove-product">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-secondary" id="add-product">Add Another Product</button>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Total Amount: $<span id="total-amount">0.00</span></strong>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create Order</button>
+                    <a href="{{ url_for('orders') }}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productsContainer = document.getElementById('products-container');
+    const addProductBtn = document.getElementById('add-product');
+    const totalAmountSpan = document.getElementById('total-amount');
+
+    function calculateTotal() {
+        let total = 0;
+        const productRows = productsContainer.querySelectorAll('.product-row');
+        
+        productRows.forEach(row => {
+            const productSelect = row.querySelector('select[name="product_ids"]');
+            const quantityInput = row.querySelector('input[name="quantities"]');
+            
+            if (productSelect.value && quantityInput.value) {
+                const price = parseFloat(productSelect.selectedOptions[0].dataset.price);
+                const quantity = parseInt(quantityInput.value);
+                total += price * quantity;
+            }
+        });
+        
+        totalAmountSpan.textContent = total.toFixed(2);
+    }
+
+    // Add product row
+    addProductBtn.addEventListener('click', function() {
+        const newRow = productsContainer.querySelector('.product-row').cloneNode(true);
+        newRow.querySelector('select').value = '';
+        newRow.querySelector('input').value = '';
+        productsContainer.appendChild(newRow);
+        attachEventListeners(newRow);
+    });
+
+    // Remove product row
+    function attachEventListeners(row) {
+        row.querySelector('.remove-product').addEventListener('click', function() {
+            if (productsContainer.querySelectorAll('.product-row').length > 1) {
+                row.remove();
+                calculateTotal();
+            }
+        });
+
+        row.querySelector('select').addEventListener('change', calculateTotal);
+        row.querySelector('input').addEventListener('input', calculateTotal);
+    }
+
+    // Attach listeners to initial row
+    attachEventListeners(productsContainer.querySelector('.product-row'));
+    calculateTotal();
+});
+</script>
+{% endblock %}

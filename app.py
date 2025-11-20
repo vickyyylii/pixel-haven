@@ -362,6 +362,108 @@ def add_sample_data():
     else:
         print("✅ Sample data already exists")
 
+# Order Management Routes
+@app.route('/orders')
+@login_required
+def orders():
+    all_orders = Order.query.all()
+    return render_template('orders/list.html', orders=all_orders)
+
+@app.route('/orders/create', methods=['GET', 'POST'])
+@login_required
+def create_order():
+    customers = Customer.query.all()
+    products = Product.query.all()
+    
+    if request.method == 'POST':
+        customer_id = int(request.form['customer_id'])
+        product_ids = request.form.getlist('product_ids')
+        quantities = request.form.getlist('quantities')
+        
+        # Calculate total amount
+        total_amount = 0
+        order_items = []
+        
+        for i, product_id in enumerate(product_ids):
+            product = Product.query.get(int(product_id))
+            quantity = int(quantities[i])
+            
+            if product and quantity > 0:
+                # Check stock availability
+                if product.stock_quantity >= quantity:
+                    subtotal = product.price * quantity
+                    total_amount += subtotal
+                    
+                    # Create order item
+                    order_item = OrderItem(
+                        quantity=quantity,
+                        unit_price=product.price,
+                        product_id=product.id
+                    )
+                    order_items.append(order_item)
+                    
+                    # Update product stock
+                    product.stock_quantity -= quantity
+                else:
+                    flash(f'Insufficient stock for {product.name}', 'error')
+                    return redirect(url_for('create_order'))
+        
+        if order_items:
+            # Create order
+            new_order = Order(
+                total_amount=total_amount,
+                customer_id=customer_id,
+                employee_id=current_user.id
+            )
+            
+            db.session.add(new_order)
+            db.session.flush()  # Get the order ID
+            
+            # Add order items
+            for order_item in order_items:
+                order_item.order_id = new_order.id
+                db.session.add(order_item)
+            
+            db.session.commit()
+            flash('Order created successfully!', 'success')
+            return redirect(url_for('orders'))
+        else:
+            flash('No valid products selected for order', 'error')
+    
+    return render_template('orders/create.html', customers=customers, products=products)
+
+@app.route('/orders/<int:id>')
+@login_required
+def order_details(id):
+    order = Order.query.get_or_404(id)
+    return render_template('orders/details.html', order=order)
+
+@app.route('/orders/update_status/<int:id>', methods=['POST'])
+@login_required
+def update_order_status(id):
+    order = Order.query.get_or_404(id)
+    new_status = request.form['status']
+    order.status = new_status
+    db.session.commit()
+    flash(f'Order status updated to {new_status}', 'success')
+    return redirect(url_for('order_details', id=id))
+
+@app.route('/orders/delete/<int:id>')
+@login_required
+def delete_order(id):
+    order = Order.query.get_or_404(id)
+    
+    # Restore product stock
+    for item in order.items:
+        product = Product.query.get(item.product_id)
+        if product:
+            product.stock_quantity += item.quantity
+    
+    db.session.delete(order)
+    db.session.commit()
+    flash('Order deleted successfully!', 'success')
+    return redirect(url_for('orders'))
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
